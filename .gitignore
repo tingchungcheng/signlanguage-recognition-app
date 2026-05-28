@@ -6,8 +6,20 @@ dist/
 build/
 web-build/
 
+# Native projects (regenerate: npx expo prebuild)
+android/
+ios/
+
+# Native build outputs
+*.apk
+*.aab
+*.ipa
+.gradle/
+local.properties
+
 # Python environments and caches
 .venv/
+.venv-*/
 .venv-ml/
 __pycache__/
 *.py[cod]
@@ -18,11 +30,18 @@ __pycache__/
 dataset/
 ML/artifacts/
 *.tflite
+!App/assets/*.tflite
+*.bin
+!App/assets/asl_baseline_tfjs/*.bin
 *.keras
 *.h5
 *.ckpt
 *.pt
 *.onnx
+
+# App asset scratch / test exports
+App/assets/**/_tmp_*/
+App/assets/**/*_test/
 
 # OS / editor noise
 .DS_Store
@@ -42,3 +61,6 @@ pnpm-debug.log*
 .env.*
 !.env.example
 kaggle.json
+
+# Accidental shell redirect artifacts
+=*

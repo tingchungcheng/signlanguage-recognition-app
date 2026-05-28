@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Prepare ASL dataset splits from Kaggle download.
+Prepare ASL dataset splits from the ayuraj/asl-dataset Kaggle download.
 
 Usage:
-  python ML/prepare_dataset.py
+  python ML/prepare_dataset.py --overwrite
+  python ML/prepare_dataset.py --overwrite --include-digits
 """
 
 from __future__ import annotations
@@ -14,7 +15,27 @@ import shutil
 from pathlib import Path
 
 ALPHABET_CLASSES = [chr(code) for code in range(ord("A"), ord("Z") + 1)]
-EXTRA_CLASSES = ["del", "nothing", "space"]
+DIGIT_CLASSES = [str(digit) for digit in range(10)]
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
+
+
+def resolve_class_dir(input_root: Path, class_name: str) -> Path | None:
+    for candidate in (class_name, class_name.lower(), class_name.upper()):
+        path = input_root / candidate
+        if path.is_dir():
+            return path
+    return None
+
+
+def output_class_name(class_name: str) -> str:
+    if len(class_name) == 1 and class_name.isalpha():
+        return class_name.upper()
+    return class_name
+
+
+def copy_file(src: Path, dst: Path) -> None:
+    """Copy file contents only (no mode/time metadata; safe on WSL /mnt/c)."""
+    shutil.copyfile(src, dst)
 
 
 def copy_split(
@@ -30,9 +51,9 @@ def copy_split(
     val_files = files[train_count:]
 
     for src in train_files:
-        shutil.copy2(src, out_train / src.name)
+        copy_file(src, out_train / src.name)
     for src in val_files:
-        shutil.copy2(src, out_val / src.name)
+        copy_file(src, out_val / src.name)
 
 
 def main() -> None:
@@ -40,8 +61,8 @@ def main() -> None:
     parser.add_argument(
         "--input-root",
         type=Path,
-        default=Path("dataset/asl_alphabet/ASL_Alphabet_Dataset/asl_alphabet_train"),
-        help="Kaggle train root containing class subfolders.",
+        default=Path("dataset/asl_dataset"),
+        help="Kaggle root containing class subfolders (default: ayuraj/asl-dataset).",
     )
     parser.add_argument(
         "--output-root",
@@ -50,9 +71,9 @@ def main() -> None:
         help="Output root for processed splits.",
     )
     parser.add_argument(
-        "--include-extra",
+        "--include-digits",
         action="store_true",
-        help="Include del/nothing/space classes in addition to A-Z.",
+        help="Include 0-9 digit classes in addition to A-Z.",
     )
     parser.add_argument(
         "--val-ratio",
@@ -73,11 +94,17 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    classes = ALPHABET_CLASSES + (EXTRA_CLASSES if args.include_extra else [])
+    classes = ALPHABET_CLASSES + (DIGIT_CLASSES if args.include_digits else [])
     input_root = args.input_root
     output_root = args.output_root
     train_out_root = output_root / "train"
     val_out_root = output_root / "val"
+
+    if not input_root.exists():
+        raise FileNotFoundError(
+            f"Dataset not found at {input_root}. "
+            "Download with: kaggle datasets download -d ayuraj/asl-dataset -p dataset --unzip"
+        )
 
     if args.overwrite and output_root.exists():
         shutil.rmtree(output_root)
@@ -86,16 +113,16 @@ def main() -> None:
     summary: list[tuple[str, int, int]] = []
 
     for class_name in classes:
-        src_dir = input_root / class_name
-        if not src_dir.exists():
-            print(f"[WARN] Missing class dir: {src_dir}")
+        src_dir = resolve_class_dir(input_root, class_name)
+        if src_dir is None:
+            print(f"[WARN] Missing class dir for: {class_name}")
             continue
 
         files = sorted(
             [
-                p
-                for p in src_dir.iterdir()
-                if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png"}
+                path
+                for path in src_dir.iterdir()
+                if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
             ]
         )
         if not files:
@@ -105,14 +132,21 @@ def main() -> None:
         random.shuffle(files)
         val_count = max(1, int(len(files) * args.val_ratio))
         train_count = len(files) - val_count
+        label = output_class_name(class_name)
 
         copy_split(
             files,
             train_count=train_count,
-            out_train=train_out_root / class_name,
-            out_val=val_out_root / class_name,
+            out_train=train_out_root / label,
+            out_val=val_out_root / label,
         )
-        summary.append((class_name, train_count, val_count))
+        summary.append((label, train_count, val_count))
+
+    if not summary:
+        raise RuntimeError(
+            f"No classes were prepared from {input_root}. "
+            "Check that class folders exist (e.g. a/, b/, ... or A/, B/, ...)."
+        )
 
     print("\nPrepared dataset:")
     print(f"- Input: {input_root}")

@@ -1,88 +1,45 @@
 # Sign Language Recognition App
 
-React Native (Expo + TypeScript) app for sign-language recognition, word building, and TTS output.
+ASL letter recognition on mobile (realtime dev build), plus Python training for a custom A–Z model.
 
-## Project Layout
+## Documentation
 
-This repository is split into two main modules:
+| Guide | Contents |
+|--------|----------|
+| **[docs/app.md](docs/app.md)** | Install, dev build, realtime camera + TFLite, app layout |
+| **[docs/ml.md](docs/ml.md)** | Dataset, training, WSL GPU, TF.js export |
 
-- `App/` - mobile app code (React Native/Expo)
-- `ML/` - dataset prep and training scripts
+## Quick start
+
+**App (realtime on device):**
+
+```bash
+npm install --legacy-peer-deps
+npm run setup:app
+npm run copy-ml-assets
+npm run android:dev
+```
+
+**ML (train model):**
+
+```bash
+pip install -r ML/requirements.txt
+python ML/prepare_dataset.py --overwrite
+python ML/train_baseline.py --epochs 10
+npm run copy-ml-assets
+```
+
+## Repository layout
 
 ```text
-.
-├── App
-│   ├── App.tsx
-│   └── src
-│       ├── components
-│       ├── screens
-│       ├── services
-│       ├── state
-│       ├── theme
-│       └── types
-├── ML
-│   ├── prepare_dataset.py
-│   ├── train_baseline.py
-│   └── requirements.txt
-├── dataset/
-├── index.js
-├── app.json
-├── package.json
-└── tsconfig.json
+App/          # React Native / Expo app
+ML/           # Dataset prep, training, export scripts
+docs/         # App and ML documentation
+dataset/      # Downloaded data (gitignored)
+scripts/      # copy-ml-assets.js
 ```
 
-## Current Status
+## Notes
 
-- Step 1 app scaffold is complete (camera + landmark overlay + app state + theme).
-- Dataset downloaded and prepared for A-Z classes.
-- Baseline training scripts are ready in `ML/`.
-
-## Prerequisites
-
-- Node.js `20+` recommended
-- npm
-- Python `3.10+` for ML scripts
-
-## Run The App
-
-```bash
-npm install
-npm start
-```
-
-Then use Expo controls:
-- `a` Android
-- `i` iOS
-- or scan QR with Expo Go
-
-## ML Workflow
-
-### 1) Prepare dataset split (A-Z)
-
-```bash
-python3 ML/prepare_dataset.py --overwrite
-```
-
-### 2) Train baseline model
-
-```bash
-python3 -m venv .venv-ml
-source .venv-ml/bin/activate
-pip install -r ML/requirements.txt
-python3 ML/train_baseline.py --epochs 10
-```
-
-Expected artifacts:
-- `ML/artifacts/asl_baseline.keras`
-- `ML/artifacts/asl_baseline.tflite`
-- `ML/artifacts/labels.txt`
-
-## Troubleshooting
-
-- `TypeError: os.availableParallelism is not a function`
-  - Use newer Node: `nvm use 20`
-
-- Android bundling error from `@mediapipe/tasks-vision/vision_bundle.mjs`
-  - Native build uses non-web service path now.
-  - Clear cache: `npx expo start -c`
-
+- **Expo Go** does not support realtime recognition; use a [development build](docs/app.md).
+- Large files (`dataset/`, `ML/artifacts/`) are gitignored; `App/assets/*.tflite` is committed for the app.

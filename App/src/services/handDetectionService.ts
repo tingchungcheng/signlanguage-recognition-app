@@ -1,30 +1,26 @@
 import { HandLandmarks } from "../types/landmarks";
+import type { CameraPhoto, HandDetectionService } from "./handDetectionTypes";
 
-export type HandDetectionService = {
-  initialize: () => Promise<void>;
-  detect: () => Promise<HandLandmarks | null>;
-};
-
-class MockHandDetectionService implements HandDetectionService {
-  async initialize() {
-    // Native-safe placeholder detector. Real frame piping comes in next step.
+/**
+ * Expo Go on iOS/Android: no MediaPipe (WASM does not bundle in Metro).
+ * ASL classification uses the full camera frame.
+ */
+class NativeHandDetectionService implements HandDetectionService {
+  supportsLiveLandmarks() {
+    return false;
   }
 
-  async detect() {
-    const now = Date.now() / 800;
-    const points = 21;
+  async initialize() {
+    // No-op on native.
+  }
 
-    const mock: HandLandmarks = Array.from({ length: points }).map((_, i) => {
-      const angle = (i / points) * Math.PI * 2;
-      return {
-        x: 0.5 + Math.cos(angle + now) * 0.2,
-        y: 0.5 + Math.sin(angle + now) * 0.25,
-        z: 0,
-      };
-    });
+  async detect(): Promise<HandLandmarks | null> {
+    return null;
+  }
 
-    return mock;
+  async detectFromPhoto(_photo: CameraPhoto): Promise<HandLandmarks | null> {
+    return null;
   }
 }
 
-export const handDetectionService: HandDetectionService = new MockHandDetectionService();
+export const handDetectionService: HandDetectionService = new NativeHandDetectionService();

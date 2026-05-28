@@ -1,1 +1,3 @@
 tensorflow>=2.16
+tensorflowjs>=4.17.0,<4.18
+kaggle>=1.6

@@ -1,122 +1,73 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
-import React, { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LandmarkOverlay } from "../components/LandmarkOverlay";
-import { handDetectionService } from "../services/handDetectionService";
-import { useAppState } from "../state/AppStateContext";
+import Constants from "expo-constants";
+import React from "react";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme/colors";
 
-export function HandTrackingScreen() {
-  const insets = useSafeAreaInsets();
-  const [permission, requestPermission] = useCameraPermissions();
-  const { landmarks, setLandmarks } = useAppState();
-
-  useEffect(() => {
-    let isMounted = true;
-    let intervalId: ReturnType<typeof setInterval> | undefined;
-
-    const start = async () => {
-      await handDetectionService.initialize();
-
-      intervalId = setInterval(async () => {
-        if (!isMounted) {
-          return;
-        }
-
-        const detected = await handDetectionService.detect();
-        setLandmarks(detected);
-      }, 120);
-    };
-
-    void start();
-
-    return () => {
-      isMounted = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [setLandmarks]);
-
-  if (!permission) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.primaryText}>Checking camera permission...</Text>
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.primaryText}>Camera permission is required for hand tracking.</Text>
-        <Pressable style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant Permission</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
+/**
+ * Expo Go cannot load native TFLite / Vision Camera frame processors.
+ * Realtime recognition runs in a development build (see README).
+ */
+function DevBuildRequiredScreen() {
   return (
-    <View style={styles.container}>
-      <CameraView style={StyleSheet.absoluteFill} facing="front" />
-      <LandmarkOverlay landmarks={landmarks} />
-      <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-        <Text style={styles.title}>Sign A-Z (Step 1)</Text>
-        <Text style={styles.subtitle}>
-          {landmarks ? `${landmarks.length} landmarks` : "No hand detected"}
-        </Text>
-      </View>
+    <View style={styles.centered}>
+      <Text style={styles.title}>Realtime mode needs a dev build</Text>
+      <Text style={styles.body}>
+        Expo Go is too slow for live sign recognition. Build and install the native app once,
+        then use the dev client for fast camera + TFLite inference (~10–15 fps).
+      </Text>
+      <Text style={styles.code}>npm run android</Text>
+      <Text style={styles.code}>npm run ios</Text>
+      <Text style={styles.hint}>
+        First time: installs the app on your phone/emulator. After that, run npm start and open
+        the dev client (not Expo Go).
+      </Text>
     </View>
   );
 }
 
+export function HandTrackingScreen() {
+  const isExpoGo = Constants.appOwnership === "expo";
+
+  if (isExpoGo) {
+    return <DevBuildRequiredScreen />;
+  }
+
+  const { RealtimeHandTrackingScreen } =
+    require("./RealtimeHandTrackingScreen") as typeof import("./RealtimeHandTrackingScreen");
+  return <RealtimeHandTrackingScreen />;
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   centered: {
     flex: 1,
     backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    gap: 12,
-  },
-  primaryText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    textAlign: "center",
-  },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  buttonText: {
-    color: colors.textPrimary,
-    fontWeight: "600",
-  },
-  topBar: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "rgba(34,34,34,0.6)",
-    paddingHorizontal: 16,
-    paddingBottom: 10,
+    gap: 14,
   },
   title: {
     color: colors.textPrimary,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
+    textAlign: "center",
   },
-  subtitle: {
-    marginTop: 4,
+  body: {
     color: colors.textMuted,
-    fontSize: 14,
+    fontSize: 15,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  code: {
+    color: colors.accent,
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+  },
+  hint: {
+    color: colors.textMuted,
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

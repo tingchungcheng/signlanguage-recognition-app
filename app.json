@@ -5,8 +5,34 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "assetBundlePatterns": [
-      "**/*"
-    ]
+    "assetBundlePatterns": ["**/*"],
+    "plugins": [
+      "expo-asset",
+      "expo-dev-client",
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Camera access is required for sign language recognition.",
+          "enableMicrophonePermission": false
+        }
+      ],
+      [
+        "react-native-fast-tflite",
+        {
+          "enableCoreMLDelegate": true,
+          "enableAndroidGpuLibraries": true
+        }
+      ]
+    ],
+    "ios": {
+      "bundleIdentifier": "com.signlanguage.recognition",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera access is required for sign language recognition."
+      }
+    },
+    "android": {
+      "package": "com.signlanguage.recognition",
+      "permissions": ["android.permission.CAMERA"]
+    }
   }
 }

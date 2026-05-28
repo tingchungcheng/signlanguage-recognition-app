@@ -18,7 +18,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Train ASL baseline model.")
     parser.add_argument("--data-root", type=Path, default=Path("dataset/processed"))
     parser.add_argument("--img-size", type=int, default=96)
-    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--output-dir", type=Path, default=Path("ML/artifacts"))
     args = parser.parse_args()
@@ -55,6 +55,7 @@ def main() -> None:
     train_ds = train_ds.prefetch(autotune)
     val_ds = val_ds.prefetch(autotune)
 
+    # input_shape on the first layer (no separate InputLayer) exports cleanly to TF.js.
     model = tf.keras.Sequential(
         [
             tf.keras.layers.Rescaling(1.0 / 255, input_shape=(args.img_size, args.img_size, 3)),
