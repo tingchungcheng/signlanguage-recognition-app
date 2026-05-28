@@ -1,0 +1,88 @@
+Here’s a clean, realistic, production-style architecture for your RN sign-to-speech A–Z system using MediaPipe + lightweight ML + on-device inference.
+This project should spread into 4 segments.
+
+1. Setup RN Project
+- Setup app (.ts)
+- Integrate Mediapipe Hands
+- Show landmarks on screen thru app
+- State management tool could consider context API. 
+- Theme color: 222222, FF6D1F, FAF3E1
+
+2. ML Model
+- Dataset collection
+- Train model (Python)
+- Convert to TFLite
+- Test inference in app
+
+3. Word builder
+- Implementing logic
+- Buffer and timeout
+- Char and word display
+
+4. TTS and polish
+- Text to speech integration
+- Some modern UIUX
+- Testing and fine tuning the app
+
+
+Camera (React Native)
+   ↓
+Frame Stream (30 FPS)
+   ↓
+MediaPipe Hands (landmark extraction)
+   ↓
+Feature Normalization Layer
+   ↓
+Gesture Classifier (ML model)
+   ↓
+Temporal Smoothing / Sequence Buffer
+   ↓
+Character Output Engine (A–Z)
+   ↓
+Word Builder (concat + timeout logic)
+   ↓
+Text-to-Speech (system voice)
+   ↓
+Audio Output + UI display
+
+                ┌─────────────────────┐
+                │  React Native App   │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ Camera Stream       │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ MediaPipe Hands     │
+                │ (21 landmarks)      │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ Feature Normalizer  │
+                │ (63 floats vector)  │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ ML Classifier       │
+                │ (A–Z model)         │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ Stability Engine    │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ Word Builder        │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ TTS Engine          │
+                └─────────────────────┘

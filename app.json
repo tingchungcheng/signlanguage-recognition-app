@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "SignLanguage Recognition App",
+    "slug": "signlanguage-recognition-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}

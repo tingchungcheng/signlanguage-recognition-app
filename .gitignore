@@ -1,0 +1,44 @@
+# Node / React Native / Expo
+node_modules/
+.expo/
+.expo-shared/
+dist/
+build/
+web-build/
+
+# Python environments and caches
+.venv/
+.venv-ml/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# ML artifacts and datasets (large files)
+dataset/
+ML/artifacts/
+*.tflite
+*.keras
+*.h5
+*.ckpt
+*.pt
+*.onnx
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+kaggle.json

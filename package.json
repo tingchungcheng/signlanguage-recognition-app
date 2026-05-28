@@ -1,0 +1,29 @@
+{
+  "name": "signlanguage-recognition-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RN sign language recognition app scaffold",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.22",
+    "expo": "^53.0.11",
+    "expo-camera": "^16.0.16",
+    "expo-status-bar": "^2.2.3",
+    "react": "19.0.0",
+    "react-native": "^0.79.3",
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-svg": "^15.11.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@types/react": "^19.0.10",
+    "typescript": "^5.8.3"
+  }
+}
