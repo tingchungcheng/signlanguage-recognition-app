@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native-fast-tflite/android/CMakeLists.txt b/node_modules/react-native-fast-tflite/android/CMakeLists.txt
+index 9b2d0f5..e5d6499 100644
+--- a/node_modules/react-native-fast-tflite/android/CMakeLists.txt
++++ b/node_modules/react-native-fast-tflite/android/CMakeLists.txt
+@@ -33,6 +33,12 @@ add_library(${PACKAGE_NAME} SHARED
+         ../cpp/TfliteHelpers.cpp
+ )
+ 
++target_link_options(${PACKAGE_NAME}
++    PRIVATE
++    "-Wl,-z,max-page-size=16384"
++    "-Wl,-z,common-page-size=16384"
++)
++
+ # Add Nitrogen specs :)
+ include(${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/NitroTflite+autolinking.cmake)
+ 

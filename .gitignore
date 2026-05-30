@@ -29,13 +29,19 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 
-# ML artifacts and datasets (large files)
+# ML training outputs and raw data (not needed to run the app)
 dataset/
 ML/artifacts/
+
+# Bundled models in App/assets/ are committed for clone-and-run (see README).
 *.tflite
 !App/assets/*.tflite
+*.task
+!App/assets/hand_landmarker.task
+
+# Legacy TF.js export (not used by the dev client app)
 *.bin
-!App/assets/asl_baseline_tfjs/*.bin
+App/assets/asl_baseline_tfjs/
 *.keras
 *.h5
 *.ckpt

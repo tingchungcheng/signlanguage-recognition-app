@@ -1,0 +1,3 @@
+# Optional — conflicts with latest TensorFlow on some platforms; use a separate venv if needed.
+tensorflow>=2.15,<2.16
+tensorflowjs>=4.17.0,<4.18

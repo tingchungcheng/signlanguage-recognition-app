@@ -5,3 +5,11 @@ export const LABELS = [
 ] as const;
 
 export const IMG_SIZE = 96;
+
+/** Fraction of camera frame — matches RecognitionFrameOverlay. */
+export const GUIDE_CROP = {
+  x: 0.14,
+  y: 0.22,
+  width: 0.72,
+  height: 0.52,
+} as const;

@@ -8,6 +8,19 @@
     "assetBundlePatterns": ["**/*"],
     "plugins": [
       "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "ndkVersion": "28.2.13676358",
+            "packagingOptions": {
+              "jniLibs": {
+                "useLegacyPackaging": false
+              }
+            }
+          }
+        }
+      ],
       "expo-dev-client",
       [
         "react-native-vision-camera",
@@ -16,6 +29,15 @@
           "enableMicrophonePermission": false
         }
       ],
+      [
+        "expo-vision-camera-v4-mediapipe/plugin",
+        {
+          "numHands": 1,
+          "minDetectionConfidence": 0.4,
+          "minTrackingConfidence": 0.4
+        }
+      ],
+      "./plugins/withMediapipeAndroidFix.js",
       [
         "react-native-fast-tflite",
         {

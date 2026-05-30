@@ -1,8 +1,21 @@
-# Machine learning guide
+# Machine learning guide (optional)
 
-Train an ASL A–Z classifier and export artifacts for the mobile app.
+Training is **optional**. The repo ships pretrained files in **`App/assets/`** so you can clone and run the app without this guide. Use this doc when you want to **retrain** or replace the classifier.
 
 Dataset: [ayuraj/asl-dataset](https://www.kaggle.com/datasets/ayuraj/asl-dataset) (~2,515 images, 36 classes A–Z + 0–9).
+
+## After training: update the app and GitHub
+
+Training writes to **`ML/artifacts/`** (gitignored). Copy into the app and commit if you want others to pull your new model:
+
+```bash
+npm run copy-ml-assets
+git add App/assets/asl_baseline.tflite App/assets/labels.txt
+git commit -m "Update ASL classifier model"
+git push
+```
+
+`hand_landmarker.task` is unchanged by training; only commit it once if it is not already in the repo.
 
 ## Prerequisites
 
@@ -36,7 +49,7 @@ Include digits:
 python ML/prepare_dataset.py --overwrite --include-digits
 ```
 
-Output: `dataset/processed/train` and `dataset/processed/val`.
+Output: `dataset/processed/train` and `dataset/processed/val` (gitignored).
 
 ### Train
 
@@ -44,11 +57,13 @@ Output: `dataset/processed/train` and `dataset/processed/val`.
 python ML/train_baseline.py --epochs 10
 ```
 
-Artifacts (gitignored, copy to app manually):
+Outputs in `ML/artifacts/` (gitignored):
 
-- `ML/artifacts/asl_baseline.keras`
-- `ML/artifacts/asl_baseline.tflite`
-- `ML/artifacts/labels.txt`
+- `asl_baseline.keras`
+- `asl_baseline.tflite`
+- `labels.txt`
+
+Then:
 
 ```bash
 npm run copy-ml-assets
@@ -77,6 +92,7 @@ bash ML/setup_wsl_gpu.sh
 source ML/activate_wsl_gpu.sh
 python ML/prepare_dataset.py --overwrite
 python ML/train_baseline.py --epochs 10
+npm run copy-ml-assets
 ```
 
 Kaggle credentials in WSL:
@@ -89,34 +105,26 @@ chmod 600 ~/.kaggle/kaggle.json
 
 Use `source ML/activate_wsl_gpu.sh` — not `.venv-ml` on `/mnt/c` (NTFS breaks Linux venvs). The setup script uses `~/.venvs/signlanguage-recognition-app`.
 
-## Export TF.js (optional, web / Expo Go experiments)
-
-Do **not** use the GPU training venv for export (protobuf conflicts).
-
-```bash
-bash ML/export_tfjs_wsl.sh
-```
-
-Or:
-
-```bash
-~/.venvs/tfjs-export/bin/python ML/export_tfjs.py
-```
-
-Output: `App/assets/asl_baseline_tfjs/`
-
 ## ML scripts
 
 | Script | Purpose |
 |--------|---------|
 | `ML/prepare_dataset.py` | Kaggle → train/val split |
 | `ML/train_baseline.py` | Train CNN, save Keras + TFLite |
-| `ML/export_tfjs.py` | Export TF.js bundle for app |
+| `ML/export_tfjs.py` | Optional TF.js export (not used by dev client app) |
 | `ML/setup_wsl_gpu.sh` | WSL GPU venv setup |
 | `ML/activate_wsl_gpu.sh` | Activate WSL GPU env |
 
 ## Troubleshooting
 
+- **`ModuleNotFoundError: No module named 'tensorflow'`** — You ran system `python`, not the venv. In PowerShell from the repo root:
+  ```powershell
+  .\.venv-ml\Scripts\Activate.ps1
+  pip install -r ML/requirements.txt
+  python ML/train_baseline.py --epochs 10
+  ```
+  Or without activating: `.\.venv-ml\Scripts\python.exe ML/train_baseline.py --epochs 10`
+- **`pip` conflict with `tensorflowjs`** — Training only needs `ML/requirements.txt`. TF.js is optional: `ML/requirements-tfjs.txt`.
 - **Kaggle fails** — Check `kaggle.json` and dataset access.
 - **WSL: no distributions** — Run `ML/install_wsl.ps1` as Administrator.
 - **WSL: ensurepip / venv on `/mnt/c`** — Use `bash ML/setup_wsl_gpu.sh` (venv in `~/.venvs/...`).

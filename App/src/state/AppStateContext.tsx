@@ -1,10 +1,7 @@
 import React, { createContext, ReactNode, useCallback, useContext, useMemo, useState } from "react";
-import { HandLandmarks } from "../types/landmarks";
 import { ModelStatus } from "../types/recognition";
 
 type AppStateContextValue = {
-  landmarks: HandLandmarks | null;
-  setLandmarks: (landmarks: HandLandmarks | null) => void;
   modelStatus: ModelStatus;
   setModelStatus: (status: ModelStatus) => void;
   modelError: string | null;
@@ -25,7 +22,6 @@ type Props = {
 };
 
 export function AppStateProvider({ children }: Props) {
-  const [landmarks, setLandmarks] = useState<HandLandmarks | null>(null);
   const [modelStatus, setModelStatus] = useState<ModelStatus>("loading");
   const [modelError, setModelError] = useState<string | null>(null);
   const [predictedLetter, setPredictedLetter] = useState<string | null>(null);
@@ -45,8 +41,6 @@ export function AppStateProvider({ children }: Props) {
 
   const value = useMemo(
     () => ({
-      landmarks,
-      setLandmarks,
       modelStatus,
       setModelStatus,
       modelError,
@@ -60,7 +54,6 @@ export function AppStateProvider({ children }: Props) {
       clearWord,
     }),
     [
-      landmarks,
       modelStatus,
       modelError,
       predictedLetter,

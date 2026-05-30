@@ -91,6 +91,7 @@ def main() -> None:
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     tflite_bytes = converter.convert()
     tflite_out.write_bytes(tflite_bytes)
+    # App inference: float32 input tensor, RGB values 0–255 (see App/src/utils/buildTfliteInput.ts).
 
     print("\nSaved artifacts:")
     print(f"- Keras model: {keras_out}")

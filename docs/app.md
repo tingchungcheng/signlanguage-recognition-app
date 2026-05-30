@@ -1,78 +1,117 @@
 # App guide
 
-React Native (Expo SDK 54) app for ASL letter recognition, word building, and text-to-speech.
+Realtime ASL recognition with **Expo development client** (not Expo Go).
 
 ## Prerequisites
 
 - Node.js 20+
 - npm
-- For **realtime** recognition: Android device/emulator or Mac + iPhone (dev build only)
+- **Android:** Android Studio, SDK, USB debugging or emulator
+- **iOS:** Mac, Xcode, Apple developer signing (for device)
 
-## Quick start (realtime)
-
-Expo Go is **not** supported for live recognition. Use a development build.
+## First-time setup
 
 ```bash
+git clone <repo>
+cd signlanguage-recognition-app
 npm install --legacy-peer-deps
 npm run setup:app
-npm run copy-ml-assets
-npm run android:dev    # or: npm run ios:dev on macOS
 ```
 
-After the native app is installed once:
+Bundled models should already be in `App/assets/` from git:
+
+- `asl_baseline.tflite` — letter classifier  
+- `labels.txt` — A–Z labels  
+- `hand_landmarker.task` — MediaPipe hand tracking (Android)
+
+Run `npm run copy-ml-assets` only if you retrained and have `ML/artifacts/`.
+
+### Build and install the dev client
+
+**Android (Windows / Mac / Linux):**
+
+```bash
+npm run android:dev
+```
+
+**iOS (macOS only):**
+
+```bash
+npm run ios:dev
+```
+
+This runs `expo prebuild` (creates `android/` / `ios/` locally, gitignored), compiles native code (Vision Camera, TFLite, frame processors), and installs the app on your device or emulator.
+
+First build can take 10–20 minutes. Later builds are faster.
+
+## Daily development
 
 ```bash
 npm start
 ```
 
-Open the **development client** on your phone (not Expo Go).
+- Starts Metro with `--dev-client` (not Expo Go).
+- On your phone, open the **Sign Language Recognition App** icon (the dev build you installed).
+- Shake device → reload if needed.
 
-## What the app does
+You do **not** need to run `android:dev` again unless native dependencies change.
 
-1. Front camera shows a guide box.
-2. Vision Camera streams frames at ~10–15 fps.
-3. Each frame is resized to 96×96 and classified with `App/assets/asl_baseline.tflite`.
-4. Letter + confidence update continuously; tap **Add letter** and **Speak**.
+## How recognition works
 
-## Project layout
+1. Vision Camera streams front-camera frames.
+2. **MediaPipe Hands** (Android) tracks your hand; the orange frame and skeleton follow the hand bounding box.
+3. That region is cropped to 96×96, converted to **float32 0–255** for TFLite, mirrored.
+4. Letter + confidence appear **beside** the tracked frame; use **Add letter** and **Speak**.
 
-```text
-App/
-  App.tsx
-  assets/          # tflite, labels, optional TF.js export
-  src/
-    screens/       # RealtimeHandTrackingScreen, HandTrackingScreen router
-    services/      # TFLite / TF.js classification, hand detection
-    components/    # RecognitionPanel, overlays
-    hooks/         # useRealtimeRecognition (legacy Expo path)
+**Android rebuild required** after pulling (native MediaPipe plugin):
+
+```bash
+npm install --legacy-peer-deps
+npx expo prebuild --clean
+npm run android:dev
 ```
 
-## Copy model files after retraining
+`App/assets/hand_landmarker.task` (~7.5 MB) should be committed in git for clone-and-run.
+
+**iOS:** hand tracking plugin is Android-only; letter recognition on iOS still needs a separate path.
+
+## After retraining the model
+
+If you trained a new model in `ML/artifacts/`:
 
 ```bash
 npm run copy-ml-assets
+git add App/assets/asl_baseline.tflite App/assets/labels.txt
+git commit -m "Update classifier model"
+npm run android:dev
 ```
 
-Copies from `ML/artifacts/` to `App/assets/`. Update `App/assets/labels.ts` if class order changes.
+If you only pulled from git, `copy-ml-assets` skips when `ML/artifacts/` is missing and prints `App assets OK`.
 
-## Expo Go
+## Why not Expo Go?
 
-Shows a screen that explains a dev build is required. Expo Go cannot load Vision Camera frame processors or native TFLite.
+Expo Go cannot load:
 
-## Optional: TF.js (web / legacy)
+- `react-native-vision-camera` frame processors
+- `react-native-fast-tflite` (Nitro / native TFLite)
+- `vision-camera-resize-plugin`
 
-```bash
-bash ML/export_tfjs_wsl.sh   # see docs/ml.md
-```
+Those require a **custom dev client** built with `expo run:android` or `expo run:ios`.
 
 ## Troubleshooting
 
 | Issue | Fix |
 |--------|-----|
-| Expo Go: dev build required | Run `npm run android:dev` |
-| `babel-preset-expo` missing | `npx expo install babel-preset-expo` |
-| Metro cache | `npx expo start -c` |
-| No GPU / slow training | Use WSL — see [ml.md](./ml.md) |
-| SDK mismatch | `npx expo install --fix` |
+| Opens in Expo Go / wrong app | Uninstall Expo Go scan habit; open your **dev client** app after `npm start` |
+| `copy-ml-assets` missing ML/artifacts | OK if `App/assets/` models came from git |
+| Hand tracking: RGBA8888 error | Camera must use `pixelFormat="rgb"` (not `yuv`) for MediaPipe |
+| Low classifier fps | Normal on emulator/DroidCam; MediaPipe + TFLite share the frame budget |
+| `hand_landmarker.task` missing after clone | File not pushed — maintainer must `git add App/assets/hand_landmarker.task` |
+| Metro cache | `npx expo start --dev-client -c` |
+| Camera permission | Grant in system settings |
+| `Failed to create TFLite interpreter` | GPU delegate rejected the model; app retries NNAPI then CPU. Reload Metro; if it persists, run `npm run copy-ml-assets` and rebuild |
+| Build fails after pull | `npm install --legacy-peer-deps`, then `npm run android:dev` again |
+| Play Console: not 16 KB page compatible | Run `npx expo prebuild --clean`, then `npm run android:dev` (patches + NDK 28 in `app.json`) |
+| iOS signing | Set team in Xcode (`ios/` after prebuild) |
 
-More ML and WSL notes: [ml.md](./ml.md).
+ML training: [ml.md](./ml.md).

@@ -6,11 +6,12 @@ import { ModelStatus } from "../types/recognition";
 type Props = {
   modelStatus: ModelStatus;
   modelError: string | null;
-  classifyHint?: string | null;
   framesClassified?: number;
   fps?: number;
+  /** MediaPipe scans (independent of letter classification). */
+  handScans?: number;
+  handDetected?: boolean;
   predictedLetter: string | null;
-  confidence: number | null;
   word: string;
   onAddLetter: () => void;
   onSpace: () => void;
@@ -21,11 +22,11 @@ type Props = {
 export function RecognitionPanel({
   modelStatus,
   modelError,
-  classifyHint,
   framesClassified = 0,
   fps = 0,
+  handScans = 0,
+  handDetected = false,
   predictedLetter,
-  confidence,
   word,
   onAddLetter,
   onSpace,
@@ -37,29 +38,34 @@ export function RecognitionPanel({
 
   return (
     <View style={styles.panel}>
-      <View style={styles.predictionRow}>
-        <View style={styles.letterBox}>
-          <Text style={styles.letter}>{predictedLetter ?? "—"}</Text>
-        </View>
-        <View style={styles.meta}>
-          <Text style={styles.metaLabel}>Confidence</Text>
-          <Text style={styles.metaValue}>
-            {confidence != null ? `${Math.round(confidence * 100)}%` : "—"}
-          </Text>
-          <Text style={styles.metaLabel}>Model</Text>
-          <Text style={styles.metaValue}>{modelStatus}</Text>
-        </View>
-      </View>
+      <Text style={styles.metaLabel}>Model</Text>
+      <Text style={styles.metaValue}>{modelStatus}</Text>
 
       <Text style={styles.wordLabel}>Word</Text>
       <Text style={styles.wordValue}>{word.length > 0 ? word : "(empty)"}</Text>
 
-      <Text style={styles.metaLabel}>Speed</Text>
+      <Text style={styles.metaLabel}>Hand tracking</Text>
       <Text style={styles.metaValue}>
-        {fps > 0 ? `${fps} fps` : "starting…"} ({framesClassified} frames)
+        {handDetected
+          ? "hand detected"
+          : handScans > 0
+            ? "scanning — hold one hand in frame"
+            : modelStatus === "ready"
+              ? "starting scanner…"
+              : "waiting for model"}
       </Text>
 
-      {classifyHint ? <Text style={styles.hint}>{classifyHint}</Text> : null}
+      <Text style={styles.metaLabel}>Classifier</Text>
+      <Text style={styles.metaValue}>
+        {framesClassified > 0
+          ? `${fps > 0 ? `${fps} fps` : "running"} · ${framesClassified} frames`
+          : handDetected
+            ? "classifying…"
+            : modelStatus === "ready"
+              ? "waiting for hand"
+              : "—"}
+      </Text>
+
       {modelError ? <Text style={styles.error}>{modelError}</Text> : null}
 
       <View style={styles.actions}>
@@ -98,28 +104,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     gap: 8,
   },
-  predictionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  letterBox: {
-    width: 72,
-    height: 72,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  letter: {
-    color: colors.accent,
-    fontSize: 40,
-    fontWeight: "800",
-  },
-  meta: {
-    flex: 1,
-    gap: 2,
-  },
   metaLabel: {
     color: colors.textMuted,
     fontSize: 12,
@@ -139,10 +123,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     minHeight: 28,
-  },
-  hint: {
-    color: colors.textMuted,
-    fontSize: 12,
   },
   error: {
     color: "#ffb4a2",

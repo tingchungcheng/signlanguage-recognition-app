@@ -2,13 +2,14 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme/colors";
 
+/** Native dev build only; web is not a supported target. */
 export function HandTrackingScreen() {
   return (
     <View style={styles.centered}>
-      <Text style={styles.title}>Realtime recognition on device</Text>
+      <Text style={styles.title}>Use a native dev build</Text>
       <Text style={styles.body}>
-        Install the development build on Android or iOS for live camera inference. Web preview
-        uses the slower TensorFlow.js path only.
+        Realtime camera + TFLite runs on Android or iOS via the Expo development client. See
+        docs/app.md for npm run android:dev or ios:dev.
       </Text>
     </View>
   );
