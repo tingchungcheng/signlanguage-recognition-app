@@ -1,6 +1,8 @@
 # Sign Language Recognition App
 
 ASL letter recognition on mobile using an **Expo development client** (native camera, MediaPipe hand tracking, TFLite). Expo Go is not supported.
+![alt text](https://github.com/tingchungcheng/signlanguage-recognition-app/blob/main/architecture_plan.png)
+
 
 ## Documentation
 
